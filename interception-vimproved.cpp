@@ -29,22 +29,26 @@ const struct input_event
 
 unsigned short map_space[KEY_MAX];
 void map_space_init() {
+  // Remember this is called before xkb, so keymaps are qwerty.
+
   // special chars
-  map_space[KEY_E] = KEY_ESC;
-  map_space[KEY_D] = KEY_DELETE;
-  map_space[KEY_B] = KEY_BACKSPACE;
+  map_space[KEY_E] = KEY_BACK;
+  map_space[KEY_R] = KEY_FORWARD;
+
+  map_space[KEY_SEMICOLON] = KEY_BACKSPACE;
+  map_space[KEY_SPACE] = KEY_ENTER;
 
   // vim home row
   map_space[KEY_H] = KEY_LEFT;
-  map_space[KEY_J] = KEY_DOWN;
-  map_space[KEY_K] = KEY_UP;
-  map_space[KEY_L] = KEY_RIGHT;
+  map_space[KEY_Y] = KEY_DOWN;
+  map_space[KEY_N] = KEY_UP;
+  map_space[KEY_U] = KEY_RIGHT;
 
   // vim above home row
-  map_space[KEY_Y] = KEY_HOME;
-  map_space[KEY_U] = KEY_PAGEDOWN;
-  map_space[KEY_I] = KEY_PAGEUP;
-  map_space[KEY_O] = KEY_END;
+  map_space[KEY_I] = KEY_HOME;
+  map_space[KEY_J] = KEY_PAGEDOWN;
+  map_space[KEY_K] = KEY_PAGEUP;
+  map_space[KEY_L] = KEY_END;
 
   // number row to F keys
   map_space[KEY_1] = KEY_F1;
@@ -175,7 +179,7 @@ int main() {
 
     switch (state_space) {
     case START:
-      if (input->code == KEY_SPACE && input->value != KEY_STROKE_UP) {
+      if (input->code == KEY_TAB && input->value != KEY_STROKE_UP) {
         space_not_emitted = true;
         state_space = MODIFIER_HELD;
       } else {
@@ -183,7 +187,7 @@ int main() {
       }
       break;
     case MODIFIER_HELD:
-      if (input->code == KEY_SPACE && input->value != KEY_STROKE_UP)
+      if (input->code == KEY_TAB && input->value != KEY_STROKE_UP)
         break;
       if (input->value == KEY_STROKE_DOWN) {
         if (map_space[input->code] != 0) { // mapped key down
@@ -199,19 +203,19 @@ int main() {
           write_event(input);
         }
       } else { // KEY_STROKE_REPEAT or KEY_STROKE_UP
-        if (input->code == KEY_SPACE && space_not_emitted) { // && stroke up
-          write_combo(KEY_SPACE);
+        if (input->code == KEY_TAB && space_not_emitted) { // && stroke up
+          write_combo(KEY_TAB);
           space_not_emitted = false;
         } else {
           write_event(input);
         }
-        if (input->code == KEY_SPACE && input->value == KEY_STROKE_UP) {
+        if (input->code == KEY_TAB && input->value == KEY_STROKE_UP) {
           state_space = START;
         }
       }
       break;
     case KEY_HELD:
-      if (input->code == KEY_SPACE && input->value != KEY_STROKE_UP)
+      if (input->code == KEY_TAB && input->value != KEY_STROKE_UP)
         break;
       if (input->value == KEY_STROKE_DOWN &&
           held_keys.find(input->code) != held_keys.end()) {
@@ -228,7 +232,7 @@ int main() {
             state_space = MODIFIER_HELD;
           }
         } else { // key that was not mapped & held goes up
-          if (input->code == KEY_SPACE) {
+          if (input->code == KEY_TAB) {
             vector<input_event> *held_keys_up = new vector<input_event>();
             for (auto held_key_code : held_keys) {
               event held_key_up = {.time = {.tv_sec = 0, .tv_usec = 0},
